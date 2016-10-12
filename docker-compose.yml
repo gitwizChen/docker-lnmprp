@@ -1,0 +1,53 @@
+version: '2'
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    ports:
+      - "3306:3306"
+      # - "20080:22"
+    volumes:
+      - /Users/wizchen/Docker/php_nginx_mysql_redis_phalcon/mysql/data:/var/lib/mysql
+      - /Users/wizchen/Docker/php_nginx_mysql_redis_phalcon/mysql/log:/var/log/mysql
+      - /Users/wizchen/Docker/php_nginx_mysql_redis_phalcon/mysql/files:/var/lib/mysql-files
+      # - /Users/wizchen/Docker/php_nginx_mysql_redis_phalcon/mysql/mysql:/etc/mysql
+    restart: always
+  redis:
+    container_name: redis
+    image: wizchen/redis:latest
+    ports:
+      - "6379:6379"
+      # for ssh login port
+      - "20081:22"
+    restart: always
+  phpfpm:
+    container_name: phpfpm
+    image: wizchen/php-phalcon-redis:latest
+    ports:
+      - "9000:9000"
+      # for ssh login port
+      - "20082:22"
+    links:
+      - mysql
+      - redis
+    volumes:
+      - /Users/wizchen/Projects/Sites:/var/www/html
+    restart: always
+  nginx:
+    container_name: nginx
+    image: wizchen/nginx:latest
+    # nginx映射端口
+    ports:
+      - "80:80"
+      - "443:443"
+      # for ssh login port
+      - "20083:22"
+    links:
+      - phpfpm
+    volumes:
+      - /Users/wizchen/Projects/Docker/php_nginx_mysql_redis_phalcon/nginx/conf.d:/etc/nginx/conf.d
+      - /Users/wizchen/Projects/Sites:/var/www/html
+      - /Users/wizchen/Docker/php_nginx_mysql_redis_phalcon/nginx/log:/var/log/nginx
+    restart: always
